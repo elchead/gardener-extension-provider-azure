@@ -16,11 +16,9 @@ package infrastructure
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/terraformer"
-	"github.com/gardener/gardener/extensions/pkg/util"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 
@@ -39,7 +37,6 @@ func (a *actuator) reconcile(ctx context.Context, logger logr.Logger, infra *ext
 	if err != nil {
 		return err
 	}
-	var reconciler Reconciler
 	factory := ReconcilerFactoryImpl{
 		ctx:              ctx,
 		log:              logger,
@@ -55,29 +52,7 @@ func (a *actuator) reconcile(ctx context.Context, logger logr.Logger, infra *ext
 	if err != nil {
 		return err
 	}
-	if useFlow {
-		if err := cleanupTerraform(ctx, logger, a, infra); err != nil {
-			return fmt.Errorf("failed to cleanup terraform resources: %w", err)
-		}
-		reconciler, err = NewFlowReconciler(ctx, a, infra, logger)
-		if err != nil {
-			return err
-		}
-	} else {
-		reconciler, err = NewTerraformReconciler(a, logger, stateInitializer)
-		if err != nil {
-			return fmt.Errorf("failed to init terraform reconciler: %w", err)
-		}
-	}
-	status, err := reconciler.Reconcile(ctx, infra, config, cluster)
-	if err != nil {
-		return util.DetermineError(err, helper.KnownCodes)
-	}
-	state, err := reconciler.GetState(ctx, status)
-	if err != nil {
-		return util.DetermineError(err, helper.KnownCodes)
-	}
-	return patchProviderStatusAndState(ctx, infra, status, state, a.Client())
+	return strategy.Reconcile(useFlow, ctx, infra, config, cluster)
 }
 
 func cleanupTerraform(ctx context.Context, logger logr.Logger, a *actuator, infra *extensionsv1alpha1.Infrastructure) error {
