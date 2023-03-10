@@ -47,7 +47,7 @@ func (f ReconcilerFactoryImpl) Build(useFlow bool) (Reconciler, error) {
 }
 
 func (s *StrategySelector) ShouldReconcileWithFlow(infrastructure *extensionsv1alpha1.Infrastructure, cluster *extensions.Cluster) (bool, error) {
-	hasState, err := s.ShouldDeleteWithFlow(infrastructure.Status)
+	hasState, err := s.hasFlowState(infrastructure.Status)
 	if err != nil {
 		return false, err
 	}

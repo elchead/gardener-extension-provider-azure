@@ -39,14 +39,6 @@ func (a *actuator) reconcile(ctx context.Context, logger logr.Logger, infra *ext
 	if err != nil {
 		return err
 	}
-
-	// TOOD reconcile template still not used
-	//selector := StrategySelector{
-	//	//Factory: MockFactory{ctrl, tfStateRaw},
-	//	Client: a.Client(),
-	//}
-	//selector.Reconcile(useFlow, ctx, infra, config, cluster) // TODO add cleanupTF
-
 	var reconciler Reconciler
 	factory := ReconcilerFactoryImpl{
 		ctx:              ctx,
@@ -63,7 +55,6 @@ func (a *actuator) reconcile(ctx context.Context, logger logr.Logger, infra *ext
 	if err != nil {
 		return err
 	}
-	//strategy.Reconcile(useFlow,ctx,infra,config,cluster) // TODO use instead of below
 	if useFlow {
 		if err := cleanupTerraform(ctx, logger, a, infra); err != nil {
 			return fmt.Errorf("failed to cleanup terraform resources: %w", err)
